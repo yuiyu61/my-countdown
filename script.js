@@ -1,207 +1,237 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // --- 配置项 ---
-    const TOTAL_DAYS = 693;
-    const TOTAL_SCORE = 149;
+/* --- 全局与字体 --- */
+body {
+    font-family: 'Noto Sans SC', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
 
-    // --- DOM 元素 ---
-    const daysEl = document.getElementById('days');
-    const weeksEl = document.getElementById('weeks');
-    const timeProgressBar = document.getElementById('time-progress-bar');
-    const scoreDisplay = document.getElementById('score-display');
-    const scoreProgressBar = document.getElementById('score-progress-bar');
-    const claimWeeklyScoreBtn = document.getElementById('claim-weekly-score-btn');
-    const startChallengeBtn = document.getElementById('start-challenge-btn');
-    
-    // 模态框元素
-    const gameModal = document.getElementById('game-modal');
-    const historyModal = document.getElementById('history-modal');
-    const viewHistoryBtn = document.getElementById('view-history-btn');
-    const closeBtns = document.querySelectorAll('.close-btn');
-    
-    // 游戏元素
-    const guessInput = document.getElementById('guess-input');
-    const submitGuessBtn = document.getElementById('submit-guess-btn');
-    const gameFeedback = document.getElementById('game-feedback');
+/* --- 背景与遮罩 --- */
+.background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* 您可以替换成任何您喜欢的国家地理风格高清壁纸 */
+    background-image: url('https://res.klook.com/image/upload/q_85/c_fill,w_1360/%E6%B5%B7%E8%BE%B9%E5%BA%A6%E5%81%87%E6%9D%91_qmfak2.webp' );
+    background-size: cover;
+    background-position: center;
+    z-index: -2;
+}
 
-    // 积分历史
-    const historyList = document.getElementById('history-list');
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* 深色半透明遮罩 */
+    backdrop-filter: blur(5px); /* 毛玻璃效果 */
+    z-index: -1;
+}
 
-    // --- 游戏状态 ---
-    let targetNumber;
+/* --- 主容器 --- */
+.container {
+    width: 90%;
+    max-width: 700px;
+    padding: 40px;
+    text-align: center;
+}
 
-    // --- 数据状态 ---
-    let state = {
-        startDate: null,
-        currentScore: 0,
-        lastWeeklyClaim: -1, // 记录上一次领取的周数
-        scoreHistory: []
-    };
+/* --- 头部 --- */
+.main-header h1 {
+    font-size: 4em;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 5px;
+    color: #ffffff;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+}
 
-    // --- 函数 ---
+.main-header .subtitle {
+    font-size: 1.2em;
+    font-weight: 300;
+    margin-top: 5px;
+    color: #d4af37; /* 金色点缀 */
+    letter-spacing: 2px;
+}
 
-    function loadState() {
-        const savedState = JSON.parse(localStorage.getItem('countdownStateV2')); // 使用新键名避免旧数据冲突
-        if (savedState) {
-            state = savedState;
-            if (state.startDate) {
-                state.startDate = new Date(state.startDate);
-            }
-        } else {
-            state.startDate = new Date();
-            saveState();
-        }
+/* --- 倒计时面板 --- */
+.countdown-panel {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 30px 0;
+}
+
+.countdown-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.countdown-item span {
+    font-size: 4.5em;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+}
+
+.countdown-item label {
+    font-size: 1em;
+    font-weight: 300;
+    color: #ccc;
+    text-transform: uppercase;
+}
+
+/* --- 通用区块样式 --- */
+.progress-section, .main-content {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 25px;
+    margin-top: 30px;
+    backdrop-filter: blur(10px);
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    text-align: left;
+}
+
+h2 {
+    font-size: 1.6em;
+    font-weight: 400;
+    color: #d4af37;
+    margin-top: 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.5);
+    padding-bottom: 10px;
+}
+
+/* --- 进度条 --- */
+.progress-bar-container {
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 25px;
+    height: 12px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0;
+    background-color: #d4af37;
+    border-radius: 25px;
+    transition: width 0.5s ease-in-out;
+}
+
+.progress-bar.score-bar {
+    background-color: #50c878; /* 翡翠绿 */
+}
+
+/* --- 按钮 --- */
+button {
+    background-color: #d4af37;
+    color: #1a1a1a;
+    border: none;
+    padding: 12px 20px;
+    font-size: 1em;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    width: 100%;
+    margin-top: 15px;
+}
+
+button:hover {
+    background-color: #f0c44c;
+    transform: translateY(-2px);
+}
+
+button:disabled {
+    background-color: #555;
+    color: #888;
+    cursor: not-allowed;
+    transform: none;
+}
+
+button.secondary-btn {
+    background-color: transparent;
+    color: #ccc;
+    border: 1px solid #555;
+}
+
+button.secondary-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+/* --- 模态框 --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+}
+
+.modal-content {
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+    margin: 15% auto;
+    padding: 25px;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 10px;
+    text-align: left;
+    position: relative;
+    color: #f0f0f0;
+}
+
+.close-btn {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#history-list {
+    list-style-type: none;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#history-list li {
+    padding: 8px;
+    border-bottom: 1px solid #444;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .main-content {
+        grid-template-columns: 1fr;
     }
-
-    function saveState() {
-        localStorage.setItem('countdownStateV2', JSON.stringify(state));
+    .main-header h1 {
+        font-size: 3em;
     }
-
-    function getElapsedInfo() {
-        const now = new Date();
-        const elapsedMilliseconds = now - state.startDate;
-        const elapsedDays = Math.floor(elapsedMilliseconds / (1000 * 60 * 60 * 24));
-        const elapsedWeeks = Math.floor(elapsedDays / 7);
-        return { elapsedDays, elapsedWeeks };
+    .countdown-item span {
+        font-size: 3.5em;
     }
-
-    function updateCountdown() {
-        const { elapsedDays } = getElapsedInfo();
-        const daysLeft = Math.max(0, TOTAL_DAYS - elapsedDays);
-        const weeksLeft = Math.floor(daysLeft / 7);
-
-        daysEl.textContent = daysLeft;
-        weeksEl.textContent = weeksLeft;
-
-        const progress = Math.min(100, (elapsedDays / TOTAL_DAYS) * 100);
-        timeProgressBar.style.width = `${progress}%`;
-        
-        checkSpecialBonuses(elapsedDays);
-    }
-
-    function updateScoreDisplay() {
-        scoreDisplay.textContent = `当前积分: ${state.currentScore} / ${TOTAL_SCORE}`;
-        const scoreProgress = (state.currentScore / TOTAL_SCORE) * 100;
-        scoreProgressBar.style.width = `${scoreProgress}%`;
-    }
-    
-    function addScore(points, reason) {
-        // 防止重复添加特殊奖励
-        if (state.scoreHistory.some(item => item.reason === reason)) {
-            return;
-        }
-        state.currentScore += points;
-        const today = new Date().toLocaleDateString();
-        state.scoreHistory.push({ date: today, points, reason });
-        updateScoreDisplay();
-        saveState();
-    }
-
-    function checkSpecialBonuses(elapsedDays) {
-        if (elapsedDays >= 328) {
-            addScore(25, '第328天特别奖励');
-        }
-        if (elapsedDays >= TOTAL_DAYS) {
-            addScore(25, '最后一天特别奖励');
-        }
-    }
-
-    function checkWeeklyClaimStatus() {
-        const { elapsedWeeks } = getElapsedInfo();
-        if (elapsedWeeks > state.lastWeeklyClaim) {
-            claimWeeklyScoreBtn.disabled = false;
-            claimWeeklyScoreBtn.textContent = '领取本周积分 (1分)';
-        } else {
-            claimWeeklyScoreBtn.disabled = true;
-            claimWeeklyScoreBtn.textContent = '本周积分已领取';
-        }
-    }
-
-    function handleWeeklyClaim() {
-        const { elapsedWeeks } = getElapsedInfo();
-        if (elapsedWeeks > state.lastWeeklyClaim) {
-            state.lastWeeklyClaim = elapsedWeeks;
-            addScore(1, `第${elapsedWeeks + 1}周积分`);
-            alert('领取成功！获得1点积分！');
-            checkWeeklyClaimStatus();
-            saveState();
-        }
-    }
-
-    // 初始化游戏 (无限次尝试)
-    function initGame() {
-        targetNumber = Math.floor(Math.random() * 10) + 1;
-        gameFeedback.textContent = '请猜一个1到10的数字。';
-        guessInput.value = '';
-        submitGuessBtn.disabled = false;
-    }
-
-    // 处理猜数字逻辑 (无限次尝试)
-    function handleGuess() {
-        const userGuess = parseInt(guessInput.value);
-        if (isNaN(userGuess) || userGuess < 1 || userGuess > 10) {
-            gameFeedback.textContent = '请输入1到10之间的有效数字。';
-            return;
-        }
-
-        if (userGuess === targetNumber) {
-            gameFeedback.textContent = `恭喜你，猜对了！数字就是 ${targetNumber}。`;
-            submitGuessBtn.disabled = true;
-            setTimeout(() => {
-                gameModal.style.display = 'none';
-                alert('游戏成功！真是个小天才！');
-            }, 1500);
-        } else {
-            const hint = userGuess < targetNumber ? '太小了' : '太大了';
-            gameFeedback.textContent = `${hint}！再试试吧！`;
-            guessInput.select(); // 方便用户再次输入
-        }
-    }
-    
-    function showHistory() {
-        historyList.innerHTML = '';
-        if (state.scoreHistory.length === 0) {
-            historyList.innerHTML = '<li>暂无积分记录</li>';
-        } else {
-            [...state.scoreHistory].reverse().forEach(item => {
-                const li = document.createElement('li');
-                li.textContent = `${item.date}: ${item.reason} (+${item.points}分)`;
-                historyList.appendChild(li);
-            });
-        }
-        historyModal.style.display = 'block';
-    }
-
-    // --- 事件监听 ---
-    claimWeeklyScoreBtn.addEventListener('click', handleWeeklyClaim);
-    startChallengeBtn.addEventListener('click', () => {
-        initGame();
-        gameModal.style.display = 'block';
-    });
-    submitGuessBtn.addEventListener('click', handleGuess);
-    viewHistoryBtn.addEventListener('click', showHistory);
-
-    closeBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            gameModal.style.display = 'none';
-            historyModal.style.display = 'none';
-        });
-    });
-
-    window.addEventListener('click', (event) => {
-        if (event.target == gameModal || event.target == historyModal) {
-            gameModal.style.display = 'none';
-            historyModal.style.display = 'none';
-        }
-    });
-
-    // --- 初始化 ---
-    function initialize() {
-        loadState();
-        updateCountdown();
-        updateScoreDisplay();
-        checkWeeklyClaimStatus();
-        setInterval(updateCountdown, 1000 * 60); // 每分钟检查一次
-    }
-
-    initialize();
-});
+}
