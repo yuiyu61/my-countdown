@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- 配置项 ---
     const TOTAL_DAYS = 693;
-    const TOTAL_WEEKS = 99;
     const TOTAL_SCORE = 149;
 
     // --- DOM 元素 ---
@@ -10,8 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeProgressBar = document.getElementById('time-progress-bar');
     const scoreDisplay = document.getElementById('score-display');
     const scoreProgressBar = document.getElementById('score-progress-bar');
+    const claimWeeklyScoreBtn = document.getElementById('claim-weekly-score-btn');
     const startChallengeBtn = document.getElementById('start-challenge-btn');
-    const challengeDesc = document.getElementById('challenge-desc');
     
     // 模态框元素
     const gameModal = document.getElementById('game-modal');
@@ -29,68 +28,67 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 游戏状态 ---
     let targetNumber;
-    let guessesLeft;
 
     // --- 数据状态 ---
     let state = {
         startDate: null,
         currentScore: 0,
-        lastChallengeDate: null,
+        lastWeeklyClaim: -1, // 记录上一次领取的周数
         scoreHistory: []
     };
 
     // --- 函数 ---
 
-    // 从 localStorage 加载数据
     function loadState() {
-        const savedState = JSON.parse(localStorage.getItem('countdownState'));
+        const savedState = JSON.parse(localStorage.getItem('countdownStateV2')); // 使用新键名避免旧数据冲突
         if (savedState) {
             state = savedState;
-            // 确保日期是 Date 对象
             if (state.startDate) {
                 state.startDate = new Date(state.startDate);
             }
         } else {
-            // 如果是第一次，设置起始日期
             state.startDate = new Date();
             saveState();
         }
     }
 
-    // 保存数据到 localStorage
     function saveState() {
-        localStorage.setItem('countdownState', JSON.stringify(state));
+        localStorage.setItem('countdownStateV2', JSON.stringify(state));
     }
 
-    // 更新倒计时显示
-    function updateCountdown() {
+    function getElapsedInfo() {
         const now = new Date();
         const elapsedMilliseconds = now - state.startDate;
         const elapsedDays = Math.floor(elapsedMilliseconds / (1000 * 60 * 60 * 24));
-        
+        const elapsedWeeks = Math.floor(elapsedDays / 7);
+        return { elapsedDays, elapsedWeeks };
+    }
+
+    function updateCountdown() {
+        const { elapsedDays } = getElapsedInfo();
         const daysLeft = Math.max(0, TOTAL_DAYS - elapsedDays);
         const weeksLeft = Math.floor(daysLeft / 7);
 
         daysEl.textContent = daysLeft;
         weeksEl.textContent = weeksLeft;
 
-        // 更新进度条
         const progress = Math.min(100, (elapsedDays / TOTAL_DAYS) * 100);
         timeProgressBar.style.width = `${progress}%`;
         
-        // 检查特殊日期奖励
         checkSpecialBonuses(elapsedDays);
     }
 
-    // 更新积分显示
     function updateScoreDisplay() {
         scoreDisplay.textContent = `当前积分: ${state.currentScore} / ${TOTAL_SCORE}`;
         const scoreProgress = (state.currentScore / TOTAL_SCORE) * 100;
         scoreProgressBar.style.width = `${scoreProgress}%`;
     }
     
-    // 添加积分
     function addScore(points, reason) {
+        // 防止重复添加特殊奖励
+        if (state.scoreHistory.some(item => item.reason === reason)) {
+            return;
+        }
         state.currentScore += points;
         const today = new Date().toLocaleDateString();
         state.scoreHistory.push({ date: today, points, reason });
@@ -98,44 +96,46 @@ document.addEventListener('DOMContentLoaded', () => {
         saveState();
     }
 
-    // 检查特殊日期奖励
     function checkSpecialBonuses(elapsedDays) {
-        // 第328天奖励
-        if (elapsedDays >= 328 && !state.scoreHistory.some(item => item.reason === '第328天特别奖励')) {
+        if (elapsedDays >= 328) {
             addScore(25, '第328天特别奖励');
-            alert('恭喜！达成第328天，获得25分特别奖励！');
         }
-        // 最后一天奖励
-        if (elapsedDays >= TOTAL_DAYS && !state.scoreHistory.some(item => item.reason === '最后一天特别奖励')) {
+        if (elapsedDays >= TOTAL_DAYS) {
             addScore(25, '最后一天特别奖励');
-            alert('恭喜！完成所有倒数日，获得25分最终奖励！');
         }
     }
 
-    // 检查每日挑战状态
-    function checkChallengeStatus() {
-        const today = new Date().toDateString();
-        if (state.lastChallengeDate === today) {
-            startChallengeBtn.textContent = '今日已完成';
-            startChallengeBtn.disabled = true;
-            challengeDesc.textContent = '期待明天的挑战！';
+    function checkWeeklyClaimStatus() {
+        const { elapsedWeeks } = getElapsedInfo();
+        if (elapsedWeeks > state.lastWeeklyClaim) {
+            claimWeeklyScoreBtn.disabled = false;
+            claimWeeklyScoreBtn.textContent = '领取本周积分 (1分)';
         } else {
-            startChallengeBtn.textContent = '开始游戏';
-            startChallengeBtn.disabled = false;
-            challengeDesc.textContent = '完成今天的小游戏，赢取积分！';
+            claimWeeklyScoreBtn.disabled = true;
+            claimWeeklyScoreBtn.textContent = '本周积分已领取';
         }
     }
 
-    // 初始化游戏
+    function handleWeeklyClaim() {
+        const { elapsedWeeks } = getElapsedInfo();
+        if (elapsedWeeks > state.lastWeeklyClaim) {
+            state.lastWeeklyClaim = elapsedWeeks;
+            addScore(1, `第${elapsedWeeks + 1}周积分`);
+            alert('领取成功！获得1点积分！');
+            checkWeeklyClaimStatus();
+            saveState();
+        }
+    }
+
+    // 初始化游戏 (无限次尝试)
     function initGame() {
         targetNumber = Math.floor(Math.random() * 10) + 1;
-        guessesLeft = 3;
-        gameFeedback.textContent = `你有 ${guessesLeft} 次机会。`;
+        gameFeedback.textContent = '请猜一个1到10的数字。';
         guessInput.value = '';
         submitGuessBtn.disabled = false;
     }
 
-    // 处理猜数字逻辑
+    // 处理猜数字逻辑 (无限次尝试)
     function handleGuess() {
         const userGuess = parseInt(guessInput.value);
         if (isNaN(userGuess) || userGuess < 1 || userGuess > 10) {
@@ -143,43 +143,22 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        guessesLeft--;
-
         if (userGuess === targetNumber) {
             gameFeedback.textContent = `恭喜你，猜对了！数字就是 ${targetNumber}。`;
             submitGuessBtn.disabled = true;
-            completeChallenge();
-            setTimeout(() => gameModal.style.display = 'none', 2000);
-        } else if (guessesLeft > 0) {
-            const hint = userGuess < targetNumber ? '太小了' : '太大了';
-            gameFeedback.textContent = `${hint}！你还有 ${guessesLeft} 次机会。`;
+            setTimeout(() => {
+                gameModal.style.display = 'none';
+                alert('游戏成功！真是个小天才！');
+            }, 1500);
         } else {
-            gameFeedback.textContent = `很遗憾，机会用完了。正确的数字是 ${targetNumber}。`;
-            submitGuessBtn.disabled = true;
-            // 即使失败，也算完成挑战，但不给分
-            state.lastChallengeDate = new Date().toDateString();
-            saveState();
-            checkChallengeStatus();
-            setTimeout(() => gameModal.style.display = 'none', 2000);
+            const hint = userGuess < targetNumber ? '太小了' : '太大了';
+            gameFeedback.textContent = `${hint}！再试试吧！`;
+            guessInput.select(); // 方便用户再次输入
         }
     }
     
-    // 完成挑战
-    function completeChallenge() {
-        const today = new Date().toDateString();
-        state.lastChallengeDate = today;
-        
-        // 每周完成小游戏获得1分，这里简化为每日1分
-        // 您的需求是每周1分，但每日游戏，这里按每日1分实现，更具激励性
-        addScore(1, '每日游戏挑战');
-        
-        checkChallengeStatus();
-        alert('任务完成！获得1点积分！');
-    }
-
-    // 显示积分历史
     function showHistory() {
-        historyList.innerHTML = ''; // 清空旧列表
+        historyList.innerHTML = '';
         if (state.scoreHistory.length === 0) {
             historyList.innerHTML = '<li>暂无积分记录</li>';
         } else {
@@ -193,13 +172,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 事件监听 ---
+    claimWeeklyScoreBtn.addEventListener('click', handleWeeklyClaim);
     startChallengeBtn.addEventListener('click', () => {
         initGame();
         gameModal.style.display = 'block';
     });
-
     submitGuessBtn.addEventListener('click', handleGuess);
-    
     viewHistoryBtn.addEventListener('click', showHistory);
 
     closeBtns.forEach(btn => {
@@ -221,9 +199,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadState();
         updateCountdown();
         updateScoreDisplay();
-        checkChallengeStatus();
-        // 每秒更新一次倒计时（可以根据需要调整）
-        setInterval(updateCountdown, 1000 * 60); // 每分钟更新一次，减少性能消耗
+        checkWeeklyClaimStatus();
+        setInterval(updateCountdown, 1000 * 60); // 每分钟检查一次
     }
 
     initialize();
