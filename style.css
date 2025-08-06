@@ -1,0 +1,150 @@
+/* 全局样式 */
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background-color: #ffffff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 600px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 1.8em;
+    color: #1c1c1e;
+    margin-bottom: 10px;
+}
+
+.countdown-display {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #007aff;
+    margin-bottom: 20px;
+}
+
+/* 进度条样式 */
+.progress-section, .score-section, .challenge-section {
+    margin-top: 30px;
+}
+
+h2 {
+    font-size: 1.5em;
+    color: #333;
+    border-bottom: 2px solid #e5e5e5;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+.progress-bar-container {
+    width: 100%;
+    background-color: #e9ecef;
+    border-radius: 25px;
+    height: 25px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0; /* 初始宽度为0 */
+    background-color: #007aff;
+    border-radius: 25px;
+    transition: width 0.5s ease-in-out;
+    text-align: right;
+    color: white;
+    font-weight: bold;
+    line-height: 25px;
+    padding-right: 10px;
+    box-sizing: border-box;
+}
+
+.progress-bar.score-bar {
+    background-color: #34c759;
+}
+
+/* 积分和挑战区 */
+#score-display {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+button {
+    background-color: #007aff;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1em;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+button:disabled {
+    background-color: #c7c7cc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 模态框 (Modal) 样式 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 25px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 400px;
+    border-radius: 10px;
+    text-align: left;
+    position: relative;
+}
+
+.close-btn {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#history-list {
+    list-style-type: none;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#history-list li {
+    background-color: #f9f9f9;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}

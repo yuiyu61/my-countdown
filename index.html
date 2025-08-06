@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的倒数日</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>距离目标日还有</h1>
+            <div id="countdown" class="countdown-display">
+                <span id="days"></span> 天 <span id="weeks"></span> 周
+            </div>
+        </header>
+
+        <main>
+            <!-- 倒计时进度条 -->
+            <div class="progress-section">
+                <h2>倒计时进度</h2>
+                <div class="progress-bar-container">
+                    <div id="time-progress-bar" class="progress-bar"></div>
+                </div>
+            </div>
+
+            <!-- 积分系统 -->
+            <div class="score-section">
+                <h2>我的积分</h2>
+                <p id="score-display">当前积分: 0 / 149</p>
+                <div class="progress-bar-container">
+                    <div id="score-progress-bar" class="progress-bar score-bar"></div>
+                </div>
+                <button id="view-history-btn">查看积分历史</button>
+            </div>
+
+            <!-- 每日挑战 -->
+            <div class="challenge-section">
+                <h2>今日的挑战</h2>
+                <p id="challenge-desc">完成今天的小游戏，赢取积分！</p>
+                <button id="start-challenge-btn">开始游戏</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- 游戏模态框 -->
+    <div id="game-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>每日小游戏：猜数字</h3>
+            <p>猜一个1到10之间的数字，你有3次机会。</p>
+            <input type="number" id="guess-input" min="1" max="10">
+            <button id="submit-guess-btn">提交</button>
+            <p id="game-feedback"></p>
+        </div>
+    </div>
+    
+    <!-- 积分历史模态框 -->
+    <div id="history-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>积分历史记录</h3>
+            <ul id="history-list">
+                <!-- 历史记录将通过JS动态添加 -->
+            </ul>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
