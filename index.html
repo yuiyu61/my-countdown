@@ -1,82 +1,237 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>倒数日 · 征途</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="background-image"></div>
-    <div class="overlay"></div>
+/* --- 全局与字体 --- */
+body {
+    font-family: 'Noto Sans SC', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
 
-    <div class="container">
-        <header class="main-header">
-            <h1>征途</h1>
-            <p class="subtitle">我们的倒数日</p>
-        </header>
+/* --- 背景与遮罩 --- */
+.background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* 您可以替换成任何您喜欢的国家地理风格高清壁纸 */
+    background-image: url('https://res.klook.com/image/upload/q_85/c_fill,w_1360/%E6%B5%B7%E8%BE%B9%E5%BA%A6%E5%81%87%E6%9D%91_qmfak2.webp' );
+    background-size: cover;
+    background-position: center;
+    z-index: -2;
+}
 
-        <div class="countdown-panel">
-            <div class="countdown-item">
-                <span id="days">693</span>
-                <label>天</label>
-            </div>
-            <div class="countdown-item">
-                <span id="weeks">99</span>
-                <label>周</label>
-            </div>
-        </div>
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* 深色半透明遮罩 */
+    backdrop-filter: blur(5px); /* 毛玻璃效果 */
+    z-index: -1;
+}
 
-        <div class="progress-section">
-            <h2>时间进度</h2>
-            <div class="progress-bar-container">
-                <div id="time-progress-bar" class="progress-bar"></div>
-            </div>
-        </div>
+/* --- 主容器 --- */
+.container {
+    width: 90%;
+    max-width: 700px;
+    padding: 40px;
+    text-align: center;
+}
 
-        <div class="main-content">
-            <div class="score-section">
-                <h2>积分成就</h2>
-                <p id="score-display">当前积分: 0 / 149</p>
-                <div class="progress-bar-container">
-                    <div id="score-progress-bar" class="progress-bar score-bar"></div>
-                </div>
-                <button id="claim-weekly-score-btn">领取本周积分 (1分 )</button>
-                <button id="view-history-btn" class="secondary-btn">查看积分历史</button>
-            </div>
+/* --- 头部 --- */
+.main-header h1 {
+    font-size: 4em;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 5px;
+    color: #ffffff;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+}
 
-            <div class="challenge-section">
-                <h2>每日放松</h2>
-                <p id="challenge-desc">来一局小游戏，放松一下吧！</p>
-                <button id="start-challenge-btn">开始游戏</button>
-            </div>
-        </div>
-    </div>
+.main-header .subtitle {
+    font-size: 1.2em;
+    font-weight: 300;
+    margin-top: 5px;
+    color: #d4af37; /* 金色点缀 */
+    letter-spacing: 2px;
+}
 
-    <!-- 游戏模态框 -->
-    <div id="game-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h3>小游戏：猜数字</h3>
-            <p>猜一个1到10之间的数字，直到猜对为止！</p>
-            <input type="number" id="guess-input" min="1" max="10">
-            <button id="submit-guess-btn">提交</button>
-            <p id="game-feedback"></p>
-        </div>
-    </div>
-    
-    <!-- 积分历史模态框 -->
-    <div id="history-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h3>积分历史记录</h3>
-            <ul id="history-list"></ul>
-        </div>
-    </div>
+/* --- 倒计时面板 --- */
+.countdown-panel {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 30px 0;
+}
 
-    <script src="script.js"></script>
-</body>
-</html>
+.countdown-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.countdown-item span {
+    font-size: 4.5em;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+}
+
+.countdown-item label {
+    font-size: 1em;
+    font-weight: 300;
+    color: #ccc;
+    text-transform: uppercase;
+}
+
+/* --- 通用区块样式 --- */
+.progress-section, .main-content {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 25px;
+    margin-top: 30px;
+    backdrop-filter: blur(10px);
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    text-align: left;
+}
+
+h2 {
+    font-size: 1.6em;
+    font-weight: 400;
+    color: #d4af37;
+    margin-top: 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.5);
+    padding-bottom: 10px;
+}
+
+/* --- 进度条 --- */
+.progress-bar-container {
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 25px;
+    height: 12px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0;
+    background-color: #d4af37;
+    border-radius: 25px;
+    transition: width 0.5s ease-in-out;
+}
+
+.progress-bar.score-bar {
+    background-color: #50c878; /* 翡翠绿 */
+}
+
+/* --- 按钮 --- */
+button {
+    background-color: #d4af37;
+    color: #1a1a1a;
+    border: none;
+    padding: 12px 20px;
+    font-size: 1em;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    width: 100%;
+    margin-top: 15px;
+}
+
+button:hover {
+    background-color: #f0c44c;
+    transform: translateY(-2px);
+}
+
+button:disabled {
+    background-color: #555;
+    color: #888;
+    cursor: not-allowed;
+    transform: none;
+}
+
+button.secondary-btn {
+    background-color: transparent;
+    color: #ccc;
+    border: 1px solid #555;
+}
+
+button.secondary-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+/* --- 模态框 --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+}
+
+.modal-content {
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+    margin: 15% auto;
+    padding: 25px;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 10px;
+    text-align: left;
+    position: relative;
+    color: #f0f0f0;
+}
+
+.close-btn {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#history-list {
+    list-style-type: none;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#history-list li {
+    padding: 8px;
+    border-bottom: 1px solid #444;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    .main-header h1 {
+        font-size: 3em;
+    }
+    .countdown-item span {
+        font-size: 3.5em;
+    }
+}
